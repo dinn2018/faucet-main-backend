@@ -28,7 +28,7 @@ router.post("/requests", async (ctx) => {
     let certHash = blake2b256(Certificate.encode(cert)).toString('hex')
     await service.certHashApproved(certHash)
     await service.balanceApproved()
-    let currentTimestamp = Tool.getLocalTime(new Date(), 8)
+    let currentTimestamp = Tool.getLocalTime(new Date(), ctx.config.timezone)
     let latestSchedule = await service.scheduleApproved(currentTimestamp)
     await service.addressApproved(addr, latestSchedule)
     await service.ipApproved(ip, latestSchedule)
@@ -43,7 +43,7 @@ router.post("/requests", async (ctx) => {
 You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}
         `
     };
-    // logger.info(`IP=${ip} Address=${signer} Score=${score}`)
+    logger.info(`IP=${ip} Address=${signer} Score=${score}`)
 });
 
 export default router;

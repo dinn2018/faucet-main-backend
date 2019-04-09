@@ -3,5 +3,6 @@
     "thorLimit": 30000,
     "networkAPIAddr": "http://127.0.0.1:8669",
     "certificateExpiration": 600,
-    "recapchaMinScore": 0.5
+    "recapchaMinScore": 0.5,
+    "timezone": 8
 }

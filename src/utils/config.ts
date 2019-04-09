@@ -21,6 +21,7 @@ export default class Config {
     recapchaSecretKey: string
     recapchaMinScore: number
     certificateExpiration: number
+    timezone: number
 
     constructor() {
         let data = fs.readFileSync(path.join(__dirname, "../../config.json"), "utf-8")
@@ -45,6 +46,7 @@ export default class Config {
         this.networkAPIAddr = opt.networkAPIAddr
         this.certificateExpiration = parseInt(opt.certificateExpiration) * 1000
         this.recapchaMinScore = parseFloat(opt.recapchaMinScore)
+        this.timezone = parseFloat(opt.timezone)
         logger.info("configs:", this)
     }
 
