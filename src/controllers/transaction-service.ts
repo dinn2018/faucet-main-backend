@@ -94,11 +94,13 @@ export default class TransactionService {
 
     async insertTx(txid: Bytes32, to: Address, ip: string, timestamp: number, certHash: string, latestSchedule: any) {
         try {
+            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
+            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
             await this.db.query("INSERT INTO Records (txid, address,ip, vet, thor, timestamp, certhash) VALUES (?, ?, ?, ?, ?, ?, ?);", [txid.toString(),
             to.toString(),
                 ip,
-            latestSchedule.vet,
-            latestSchedule.thor,
+            vet.toString(10),
+            thor.toString(10),
                 timestamp,
                 certHash]
             )

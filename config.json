@@ -1,6 +1,6 @@
 {
     "vetLimit": 0,
-    "thorLimit": 10000,
+    "thorLimit": 30000,
     "networkAPIAddr": "http://127.0.0.1:8669",
     "certificateExpiration": 600,
     "recapchaMinScore": 0.5

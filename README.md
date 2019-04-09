@@ -1,8 +1,8 @@
 # Faucet
 
 ```bash
-git clone https://github.com/dinn2018/faucet.git
-cd faucet
+git clone https://github.com/dinn2018/faucet-main.git
+cd faucet-main
 
 npm install
 npm run start
@@ -24,14 +24,10 @@ enviroment variables:
  config.json
 
 | Prop                  | type   | description                                                  |
-| --------------------- | ------ | ------------------------------------------------------------ |
-| vet                   | Number | withdraw vet amount for each time                            |
-| thor                  | Number | withdraw thor amount for each time                           |
+| --------------------- | :----- | ------------------------------------------------------------ |
 | vetLimit              | Number | minimum vet amount for faucet, request will be forbidden if balance of faucet address is less than vetLimit |
 | thorLimit             | Number | minimum thor amount for faucet, request will be forbidden if thor of faucet  address is less than thorLimit |
 | networkAPIAddr        | String | restful api addr of block chain                              |
-| maxAddressTimes       | Number | max times of one address withdraws each day                  |
-| maxIPTimes            | Number | max times of one ip withdraws each day                       |
 | certificateExpiration | Number | certificate expirations default:600s                         |
 | recapchaMinScore      | Number | minimum recapcha score                                       |
 
@@ -54,7 +50,7 @@ enviroment variables:
 | Failed | Error type                  | Error code |
 | ------ | --------------------------- | ---------- |
 | 400    | Parameter_Address           | 200        |
-| 404    | Recapcha_Verified_Failed    | 300        |
+| 403    | Recapcha_Verified_Failed    | 300        |
 |        | Recapcha_Low_Score          | 301        |
 |        | Certificate_Expired         | 400        |
 |        | Certificate_Verified_Failed | 401        |
@@ -63,4 +59,7 @@ enviroment variables:
 |        | Address_RateLimit_Exceed    | 404        |
 |        | IP_RateLimit_Exceed         | 405        |
 |        | Exist_Transaction           | 406        |
+|        | NO_Schedule                 | 407        |
+|        | NOT_IN_Schedule             | 408        |
+|        | Schedule_RateLimit_Exceeded | 409        |
 
