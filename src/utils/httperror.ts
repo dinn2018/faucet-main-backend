@@ -1,0 +1,42 @@
+
+class HttpError extends Error {
+    message: string
+    type: ErrorType
+    statusCode: HttpStatusCode
+    constructor(message: string, errType: ErrorType, statusCode: HttpStatusCode) {
+        super(message)
+        this.statusCode = statusCode
+        this.type = errType
+    }
+
+}
+
+enum HttpStatusCode {
+    BadRequest = 400,
+    Forbidden = 403,
+    InternalError = 500
+}
+
+enum ErrorType {
+    Internal_Error = 100,
+    Parameter_Address = 200,
+    Recapcha_Verified_Failed = 300,
+    Recapcha_Low_Score = 301,
+    Certificate_Expired = 400,
+    Certificate_Verified_Failed = 401,
+    Insufficient_Vet = 402,
+    Insufficient_Thor = 403,
+    Address_RateLimit_Exceeded = 404,
+    IP_RateLimit_Exceeded = 405,
+    Exist_Transaction = 406,
+    NO_Schedule = 407,
+    NOT_IN_Schedule = 408,
+    Schedule_RateLimit_Exceeded = 409,
+
+}
+
+export {
+    HttpError,
+    HttpStatusCode,
+    ErrorType
+}
