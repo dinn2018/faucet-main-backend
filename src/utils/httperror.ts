@@ -1,12 +1,12 @@
 
 class HttpError extends Error {
     message: string
-    type: ErrorType
+    code: ErrorCode
     statusCode: HttpStatusCode
-    constructor(message: string, errType: ErrorType, statusCode: HttpStatusCode) {
+    constructor(message: string, code: ErrorCode, statusCode: HttpStatusCode) {
         super(message)
         this.statusCode = statusCode
-        this.type = errType
+        this.code = code
     }
 
 }
@@ -17,7 +17,7 @@ enum HttpStatusCode {
     InternalError = 500
 }
 
-enum ErrorType {
+enum ErrorCode {
     Internal_Error = 100,
     Parameter_Address = 200,
     Recapcha_Verified_Failed = 300,
@@ -38,5 +38,5 @@ enum ErrorType {
 export {
     HttpError,
     HttpStatusCode,
-    ErrorType
+    ErrorCode
 }

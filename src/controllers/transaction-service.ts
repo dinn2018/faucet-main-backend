@@ -4,7 +4,7 @@ import { abi } from 'thor-devkit'
 import ThorAPI from '../api/thor-api';
 import Config from '../utils/config';
 import { logger } from '../utils/logger'
-import { HttpError, ErrorType, HttpStatusCode } from '../utils/httperror';
+import { HttpError, ErrorCode, HttpStatusCode } from '../utils/httperror';
 import BigNumber from 'bignumber.js';
 import { randomBytes } from 'crypto'
 
@@ -18,17 +18,17 @@ export default class TransactionService {
         this.config = config
     }
     async scheduleApproved(timestamp: number) {
-        let latestSchedule = await this.db.query("select * from Schedule where Schedule.from <= ? order by Schedule.from desc limit 0,1", [timestamp])
+        let latestSchedule = await this.db.query("select * from Schedule where Schedule.to >= ? order by Schedule.to asc limit 0,1", [timestamp, timestamp])
         if (latestSchedule.length == 0) {
-            throw new HttpError("NO Schedule", ErrorType.NO_Schedule, HttpStatusCode.Forbidden)
+            throw new HttpError("Oops! You are too late. All of the rewards have now been claimed for this session.", ErrorCode.NO_Schedule, HttpStatusCode.Forbidden)
         }
         let schedule = latestSchedule[0]
-        if (timestamp < schedule.from || timestamp > schedule.to) {
-            throw new HttpError("NOT in Schedule", ErrorType.NOT_IN_Schedule, HttpStatusCode.Forbidden)
+        if (timestamp < schedule.from) {
+            throw new HttpError(`Oops! Rewards are not available at this time`, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
         }
         let scheduleLimit = await this.db.query('select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ?', [schedule.from, schedule.to])
         if (scheduleLimit.length != 0 && scheduleLimit[0].count >= schedule.limit) {
-            throw new HttpError(`rateLimit Exceed, users can only send ${schedule.limit} requests in current schedule`, ErrorType.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+            throw new HttpError(`rateLimit Exceed, users can only send ${schedule.limit} requests in current schedule`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
         }
         logger.info(`Schedule=${schedule.from} ${schedule.to} Limit=${schedule.limit} count=${scheduleLimit[0].count}`)
         return schedule
@@ -38,7 +38,7 @@ export default class TransactionService {
         let results = await this.db.query("select ifnull(count(*),0) as count from Records where certhash = ?;", certHash)
         if (results.length > 0 && results[0].count >= 1) {
             logger.error("this certificate has already been used", "cert hash", certHash)
-            throw new HttpError("this certificate has already been used", ErrorType.Certificate_Expired, HttpStatusCode.Forbidden)
+            throw new HttpError("this certificate has already been used", ErrorCode.Certificate_Expired, HttpStatusCode.Forbidden)
         }
     }
 
@@ -48,11 +48,11 @@ export default class TransactionService {
         let eng = new BigNumber(acc.eng)
         if (balance.isLessThan(this.config.vetLimit)) {
             logger.error(`insufficient vet`, balance, this.config.vetLimit)
-            throw new HttpError(`insufficient vet`, ErrorType.Insufficient_Vet, HttpStatusCode.Forbidden)
+            throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Vet, HttpStatusCode.Forbidden)
         }
         if (eng.isLessThan(this.config.thorLimit)) {
             logger.error(`insufficient energy`, eng, this.config.thorLimit)
-            throw new HttpError(`insufficient energy`, ErrorType.Insufficient_Thor, HttpStatusCode.Forbidden)
+            throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Thor, HttpStatusCode.Forbidden)
         }
     }
 
@@ -61,7 +61,7 @@ export default class TransactionService {
             let results = await this.db.query("select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ? and address = ?", [latestSchedule.from, latestSchedule.to, to.toString()])
             if (results.length > 0 && results[0].count >= 1) {
                 logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + results[0].count)
-                throw new HttpError(`rateLimit Exceed, one address can only send one requests in current schedule`, ErrorType.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+                throw new HttpError(`rateLimit Exceed, one address can only send one requests in current schedule`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
@@ -73,7 +73,7 @@ export default class TransactionService {
             let results = await this.db.query("select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ? and ip = ?", [latestSchedule.from, latestSchedule.to, ip])
             if (results.length > 0 && results[0].count >= 1) {
                 logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + results[0].count)
-                throw new HttpError(`rateLimit Exceed, one ip address can only send one requests in current schedule`, ErrorType.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+                throw new HttpError(`rateLimit Exceed, one ip address can only send one requests in current schedule`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
@@ -85,7 +85,7 @@ export default class TransactionService {
             let results = await this.db.query("select ifnull(count(*),0) as count from Records where txid = ?;", txid.bytes)
             if (results.length > 0 && results[0].count > 0) {
                 logger.error("transaction is pending")
-                throw new HttpError("transaction is pending", ErrorType.Exist_Transaction, HttpStatusCode.Forbidden)
+                throw new HttpError("transaction is pending", ErrorCode.Exist_Transaction, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err

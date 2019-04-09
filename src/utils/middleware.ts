@@ -28,7 +28,7 @@ let httpErrorMiddleware = async (ctx: Koa.ParameterizedContext<any, {}>, next: (
         if (err instanceof HttpError) {
             ctx.status = err.statusCode
             ctx.body = {
-                type: err.type,
+                code: err.code,
                 message: err.message
             }
         } else {

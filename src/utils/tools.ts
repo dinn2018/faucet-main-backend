@@ -5,4 +5,5 @@ export default class Tool {
         let utcTime = len + offset;
         return utcTime + 3600000 * timezone;
     }
+
 }
