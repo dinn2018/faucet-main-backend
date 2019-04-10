@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import BigNumber from 'bignumber.js'
+import { BigNumber } from 'bignumber.js'
 import * as path from 'path';
 import { logger } from '../utils/logger'
 import { secp256k1, publicKeyToAddress } from "thor-devkit/dist/cry";

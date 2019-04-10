@@ -5,7 +5,7 @@ import ThorAPI from '../api/thor-api';
 import Config from '../utils/config';
 import { logger } from '../utils/logger'
 import { HttpError, ErrorCode, HttpStatusCode } from '../utils/httperror';
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 import { randomBytes } from 'crypto'
 
 export default class TransactionService {
