@@ -24,7 +24,8 @@ export default class TransactionService {
         }
         let schedule = latestSchedule[0]
         if (timestamp < schedule.from) {
-            throw new HttpError(`Oops! Rewards are not available at this time`, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
+            throw new HttpError(`Oops! Rewards are not available at this time. Please come back later. 
+            `, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
         }
         let scheduleLimit = await this.db.query('select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ?', [schedule.from, schedule.to])
         if (scheduleLimit.length != 0 && scheduleLimit[0].count >= schedule.limit) {
