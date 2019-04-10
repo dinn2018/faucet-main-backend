@@ -4,8 +4,6 @@ import * as Koa from 'koa';
 import { HttpError, HttpStatusCode } from './httperror';
 import { logger } from './logger'
 
-
-
 let config = new Config()
 let db = new DB({
     user: "root",
