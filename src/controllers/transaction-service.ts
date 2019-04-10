@@ -1,5 +1,5 @@
 import DB from '../utils/db';
-import { Address, Transaction, BigInt, Secp256k1, Bytes32, keccak256 } from 'thor-model-kit';
+import { Address, Transaction, BigInt, Secp256k1, Bytes32 } from 'thor-model-kit';
 import { abi } from 'thor-devkit'
 import ThorAPI from '../api/thor-api';
 import Config from '../utils/config';
@@ -47,11 +47,11 @@ export default class TransactionService {
         let acc = await this.thorAPI.getAccount(this.config.addr)
         let balance = new BigNumber(acc.balance)
         let eng = new BigNumber(acc.eng)
-        if (balance.isLessThan(this.config.vetLimit)) {
+        if (balance.lessThan(this.config.vetLimit)) {
             logger.error(`insufficient vet`, balance, this.config.vetLimit)
             throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Vet, HttpStatusCode.Forbidden)
         }
-        if (eng.isLessThan(this.config.thorLimit)) {
+        if (eng.lessThan(this.config.thorLimit)) {
             logger.error(`insufficient energy`, eng, this.config.thorLimit)
             throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Thor, HttpStatusCode.Forbidden)
         }
@@ -95,8 +95,8 @@ export default class TransactionService {
 
     async insertTx(txid: Bytes32, to: Address, ip: string, timestamp: number, certHash: string, latestSchedule: any) {
         try {
-            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
-            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
+            let vet = new BigNumber(latestSchedule.vet).mul(1e18)
+            let thor = new BigNumber(latestSchedule.thor).mul(1e18)
             await this.db.query("INSERT INTO Records (txid, address,ip, vet, thor, timestamp, certhash) VALUES (?, ?, ?, ?, ?, ?, ?);", [txid.toString(),
             to.toString(),
                 ip,
@@ -113,8 +113,8 @@ export default class TransactionService {
 
     async buildTx(to: Address, latestSchedule: any) {
         try {
-            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
-            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
+            let vet = new BigNumber(latestSchedule.vet).mul(1e18)
+            let thor = new BigNumber(latestSchedule.thor).mul(1e18)
             let coder = new abi.Function({ "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" })
             let data = coder.encode(to.toString(), thor)
             let clauses = [{
