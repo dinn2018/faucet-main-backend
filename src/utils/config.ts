@@ -41,8 +41,8 @@ export default class Config {
         let pubKey = secp256k1.derivePublicKey(Buffer.from(this.privateKey.slice(2), "hex"))
         this.addr = Address.fromHex('0x' + publicKeyToAddress(pubKey).toString("hex"))
         let big18 = new BigNumber(1e18)
-        this.vetLimit = new BigNumber(opt.vetLimit).multipliedBy(big18)
-        this.thorLimit = new BigNumber(opt.thorLimit).multipliedBy(big18)
+        this.vetLimit = new BigNumber(opt.vetLimit).mul(big18)
+        this.thorLimit = new BigNumber(opt.thorLimit).mul(big18)
         this.networkAPIAddr = opt.networkAPIAddr
         this.certificateExpiration = parseInt(opt.certificateExpiration) * 1000
         this.recapchaMinScore = parseFloat(opt.recapchaMinScore)
