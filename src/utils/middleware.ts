@@ -8,7 +8,7 @@ let config = new Config()
 let db = new DB({
     user: "root",
     host: "localhost",
-    password: "123456qwe",
+    password: "vechain@faucet!",
     port: 3306,
     database: "Faucet"
 })
