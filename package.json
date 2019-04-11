@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/validator": "^10.11.0",
     "@types/koa": "^2.0.48",
     "@types/koa-bodyparser": "^4.2.1",
     "@types/koa-cors": "0.0.0",
@@ -23,13 +24,17 @@
     "typescript": "^3.2.4"
   },
   "dependencies": {
+    "bignumber.js": "^8.1.1",
     "koa": "^2.6.2",
     "koa-bodyparser": "^2.5.0",
     "koa-cors": "0.0.16",
     "koa-router": "^7.4.0",
-    "promise-mysql": "^3.3.1",
+    "mysql2": "^1.6.5",
+    "reflect-metadata": "^0.1.13",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
+    "sequelize": "^5.2.15",
+    "sequelize-typescript": "^1.0.0-alpha.9",
     "thor-devkit": "^0.8.1",
     "thor-model-kit": "^0.3.1"
   }

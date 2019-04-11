@@ -1,5 +1,6 @@
-import DB from '../utils/db';
-import { Address, Transaction, BigInt, Secp256k1, Bytes32 } from 'thor-model-kit';
+import Record from '../sequelize-models/record.models';
+import Schedule from '../sequelize-models/schedule.model';
+import { Address, Transaction, BigInt, Secp256k1, Bytes32, keccak256 } from 'thor-model-kit';
 import { abi } from 'thor-devkit'
 import ThorAPI from '../api/thor-api';
 import Config from '../utils/config';
@@ -7,37 +8,56 @@ import { logger } from '../utils/logger'
 import { HttpError, ErrorCode, HttpStatusCode } from '../utils/httperror';
 import { BigNumber } from 'bignumber.js';
 import { randomBytes } from 'crypto'
+import { Op } from 'sequelize';
 
 export default class TransactionService {
-    private db: DB
     private thorAPI: ThorAPI
     private config: Config
-    constructor(db: DB, config: Config) {
-        this.db = db
+    constructor(config: Config) {
         this.thorAPI = new ThorAPI(config.networkAPIAddr)
         this.config = config
     }
     async scheduleApproved(timestamp: number) {
-        let latestSchedule = await this.db.query("select * from Schedule where Schedule.to >= ? order by Schedule.to asc limit 0,1", [timestamp, timestamp])
-        if (latestSchedule.length == 0) {
+        let latestSchedules = await Schedule.findAll({
+            order: [['to', 'ASC']],
+            where: {
+                to: {
+                    [Op.gt]: [timestamp]
+                }
+            },
+            limit: 1
+        })
+        if (latestSchedules.length == 0) {
             throw new HttpError("Oops! You are too late. All of the rewards have now been claimed for this session.", ErrorCode.NO_Schedule, HttpStatusCode.Forbidden)
         }
-        let schedule = latestSchedule[0]
-        if (timestamp < schedule.from) {
-            throw new HttpError(`Oops! Rewards are not available at this time. Please come back later. 
-            `, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
+        let latestSchedule = latestSchedules[0]
+        if (timestamp < latestSchedule.from) {
+            throw new HttpError(`Oops! Rewards are not available at this time. Please come back later.`, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
         }
-        let scheduleLimit = await this.db.query('select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ?', [schedule.from, schedule.to])
-        if (scheduleLimit.length != 0 && scheduleLimit[0].count >= schedule.limit) {
-            throw new HttpError(`rateLimit Exceed, users can only send ${schedule.limit} requests in current schedule`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+        let count = await Record.count({
+            where: {
+                timestamp: {
+                    [Op.and]: {
+                        [Op.gte]: latestSchedule.from,
+                        [Op.lte]: latestSchedule.to
+                    }
+                }
+            }
+        })
+        logger.info(`Schedule=${latestSchedule.from} ${latestSchedule.to} Limit=${latestSchedule.limit} count=${count}`)
+        if (count >= latestSchedule.limit) {
+            throw new HttpError(`Oops! Rewards are not available at this time. Please come back later.`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
         }
-        logger.info(`Schedule=${schedule.from} ${schedule.to} Limit=${schedule.limit} count=${scheduleLimit[0].count}`)
-        return schedule
+        return latestSchedule
     }
 
     async certHashApproved(certHash: string) {
-        let results = await this.db.query("select ifnull(count(*),0) as count from Records where certhash = ?;", certHash)
-        if (results.length > 0 && results[0].count >= 1) {
+        let count = await Record.count({
+            where: {
+                certhash: certHash
+            }
+        })
+        if (count > 0) {
             logger.error("this certificate has already been used", "cert hash", certHash)
             throw new HttpError("this certificate has already been used", ErrorCode.Certificate_Expired, HttpStatusCode.Forbidden)
         }
@@ -47,34 +67,56 @@ export default class TransactionService {
         let acc = await this.thorAPI.getAccount(this.config.addr)
         let balance = new BigNumber(acc.balance)
         let eng = new BigNumber(acc.eng)
-        if (balance.lessThan(this.config.vetLimit)) {
+        if (balance.isLessThan(this.config.vetLimit)) {
             logger.error(`insufficient vet`, balance, this.config.vetLimit)
             throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Vet, HttpStatusCode.Forbidden)
         }
-        if (eng.lessThan(this.config.thorLimit)) {
+        if (eng.isLessThan(this.config.thorLimit)) {
             logger.error(`insufficient energy`, eng, this.config.thorLimit)
             throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Thor, HttpStatusCode.Forbidden)
         }
     }
 
-    async addressApproved(to: Address, latestSchedule: any) {
+    async addressApproved(addr: Address, latestSchedule: Schedule) {
         try {
-            let results = await this.db.query("select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ? and address = ?", [latestSchedule.from, latestSchedule.to, to.toString()])
-            if (results.length > 0 && results[0].count >= 1) {
-                logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + results[0].count)
-                throw new HttpError(`rateLimit Exceed, one address can only send one requests in current schedule`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+            let count = await Record.count({
+                where: {
+                    timestamp: {
+                        [Op.and]: {
+                            [Op.gte]: latestSchedule.from,
+                            [Op.lte]: latestSchedule.to
+                        }
+                    },
+                    address: addr.toString()
+                }
+            })
+            if (count > 0) {
+                logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
+                throw new HttpError(`Oops! Rewards are not available at this time. Please come back later. 
+                `, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
         }
     }
 
-    async ipApproved(ip: string, latestSchedule: any) {
+    async ipApproved(ip: string, latestSchedule: Schedule) {
         try {
-            let results = await this.db.query("select ifnull(count(*),0) as count from Records where timestamp >= ? and timestamp <= ? and ip = ?", [latestSchedule.from, latestSchedule.to, ip])
-            if (results.length > 0 && results[0].count >= 1) {
-                logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + results[0].count)
-                throw new HttpError(`rateLimit Exceed, one ip address can only send one requests in current schedule`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+            let count = await Record.count({
+                where: {
+                    timestamp: {
+                        [Op.and]: {
+                            [Op.gte]: latestSchedule.from,
+                            [Op.lte]: latestSchedule.to
+                        }
+                    },
+                    ip: ip
+                }
+            })
+            if (count > 0) {
+                logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
+                throw new HttpError(`Oops! Rewards are not available at this time. Please come back later. 
+                `, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
@@ -83,8 +125,12 @@ export default class TransactionService {
 
     async txApproved(txid: Bytes32) {
         try {
-            let results = await this.db.query("select ifnull(count(*),0) as count from Records where txid = ?;", txid.bytes)
-            if (results.length > 0 && results[0].count > 0) {
+            let count = await Record.count({
+                where: {
+                    txid: txid.toString()
+                }
+            })
+            if (count > 0) {
                 logger.error("transaction is pending")
                 throw new HttpError("transaction is pending", ErrorCode.Exist_Transaction, HttpStatusCode.Forbidden)
             }
@@ -93,32 +139,33 @@ export default class TransactionService {
         }
     }
 
-    async insertTx(txid: Bytes32, to: Address, ip: string, timestamp: number, certHash: string, latestSchedule: any) {
+    async insertTx(txid: Bytes32, addr: Address, ip: string, timestamp: number, certHash: string, latestSchedule: Schedule) {
         try {
-            let vet = new BigNumber(latestSchedule.vet).mul(1e18)
-            let thor = new BigNumber(latestSchedule.thor).mul(1e18)
-            await this.db.query("INSERT INTO Records (txid, address,ip, vet, thor, timestamp, certhash) VALUES (?, ?, ?, ?, ?, ?, ?);", [txid.toString(),
-            to.toString(),
-                ip,
-            vet.toString(10),
-            thor.toString(10),
-                timestamp,
-                certHash]
-            )
+            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
+            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
+            await Record.create({
+                txid: txid.toString(),
+                address: addr.toString(),
+                ip: ip,
+                vet: vet.toString(10),
+                thor: thor.toString(10),
+                timestamp: timestamp,
+                certhash: certHash
+            })
         } catch (err) {
             logger.error("insertTx", err)
             throw err
         }
     }
 
-    async buildTx(to: Address, latestSchedule: any) {
+    async buildTx(addr: Address, latestSchedule: any) {
         try {
-            let vet = new BigNumber(latestSchedule.vet).mul(1e18)
-            let thor = new BigNumber(latestSchedule.thor).mul(1e18)
+            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
+            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
             let coder = new abi.Function({ "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" })
-            let data = coder.encode(to.toString(), thor)
+            let data = coder.encode(addr.toString(), thor)
             let clauses = [{
-                to: to,
+                to: addr,
                 value: BigInt.from(vet),
                 data: Buffer.alloc(0)
             }, {

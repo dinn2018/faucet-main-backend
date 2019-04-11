@@ -1,20 +1,11 @@
-import DB from './db';
 import Config from './config';
 import * as Koa from 'koa';
 import { HttpError, HttpStatusCode } from './httperror';
 import { logger } from './logger'
 
 let config = new Config()
-let db = new DB({
-    user: "root",
-    host: "localhost",
-    password: "vechain@faucet!",
-    port: 3306,
-    database: "Faucet"
-})
 
 let configMiddleware = async (ctx: Koa.ParameterizedContext<any, {}>, next: () => Promise<any>) => {
-    ctx.db = db
     ctx.config = config
     await next()
 }

@@ -4,9 +4,9 @@ import * as cors from 'koa-cors'
 import router from './controllers/router';
 import { logger } from './utils/logger'
 import { configMiddleware, httpErrorMiddleware } from './utils/middleware';
-
 const convert = require('koa-convert');
-
+import { sequelize } from './sequelize-models';
+sequelize.sync();
 const app = new Koa();
 app.proxy = process.env.REVERSE_PROXY === 'yes' ? true : false
 app.use(convert(bodyParser()))
