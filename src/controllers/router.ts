@@ -49,8 +49,7 @@ router.post("/requests", async (ctx) => {
         id: tx.id.toString(),
         msg: `Congratulations! 
 
-You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}
-        `
+You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}`
     };
     logger.info(`IP=${ip} Address=${signer} Score=${score}`)
 });

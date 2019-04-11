@@ -92,8 +92,7 @@ export default class TransactionService {
             })
             if (count > 0) {
                 logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
-                throw new HttpError(`Oops! Rewards are not available at this time. Please come back later. 
-                `, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+                throw new HttpError(`Oops! You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
@@ -115,8 +114,7 @@ export default class TransactionService {
             })
             if (count > 0) {
                 logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
-                throw new HttpError(`Oops! Rewards are not available at this time. Please come back later. 
-                `, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+                throw new HttpError(`Oops! You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
