@@ -30,10 +30,12 @@ export default class Config {
             this.privateKey = opt.privateKey
             this.chainTag = parseInt(opt.chainTag)
             this.recapchaSecretKey = opt.recapchaSecretKey
+            this.networkAPIAddr = "https://sync-testnet.vechain.org"
         } else {
             this.privateKey = process.env.PRIV_KEY
             this.chainTag = parseInt(process.env.CHAIN_TAG)
             this.recapchaSecretKey = process.env.RECAPCHA_SECRET_KEY
+            this.networkAPIAddr = "https://sync-mainnet.vechain.org"
         }
         if (this.chainTag != CHAIN_TAG.Solo && this.chainTag != CHAIN_TAG.Test && this.chainTag != CHAIN_TAG.Main) {
             throw new Error("chain tag: invalid chain tag " + this.chainTag)
@@ -43,7 +45,6 @@ export default class Config {
         let big18 = new BigNumber(1e18)
         this.vetLimit = new BigNumber(opt.vetLimit).multipliedBy(big18)
         this.thorLimit = new BigNumber(opt.thorLimit).multipliedBy(big18)
-        this.networkAPIAddr = opt.networkAPIAddr
         this.certificateExpiration = parseInt(opt.certificateExpiration) * 1000
         this.recapchaMinScore = parseFloat(opt.recapchaMinScore)
         this.timezone = parseFloat(opt.timezone)
