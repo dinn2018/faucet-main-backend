@@ -14,11 +14,13 @@ router.post("/requests", async (ctx) => {
     Validator.validateParameter(token, 'token')
     let recapchaService = new RecapchaService(ctx.config)
     let score = await recapchaService.verifyRecapcha(token)
-    let domain = ctx.request.body.annex.domain
+    let annex = ctx.request.body.annex;
+    Validator.validateParameter(annex, 'annex')
+    let domain = annex.domain
     Validator.validateParameter(domain, 'domain')
-    let signer = ctx.request.body.annex.signer
+    let signer = annex.signer
     Validator.validateParameter(signer, 'signer')
-    let timestamp = parseFloat(ctx.request.body.annex.timestamp)
+    let timestamp = parseFloat(annex.timestamp)
     Validator.validateParameter(timestamp, 'timestamp')
     let signature = ctx.request.body.signature
     Validator.validateParameter(signature, 'signature')
