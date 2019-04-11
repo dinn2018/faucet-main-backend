@@ -1,6 +1,4 @@
 {
-    "chainTag": 39,
-    "privateKey": "0x939195706df73c3f8ad39d44608e2aef3830773b1735b65ed78e3fe29696b423",
     "vetLimit": 0,
     "thorLimit": 500,
     "networkAPIAddr": "http://127.0.0.1:8669",
