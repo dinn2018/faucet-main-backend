@@ -52,7 +52,7 @@ router.post("/requests", async (ctx) => {
 You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}
         `
     };
-    // logger.info(`IP=${ip} Address=${signer} Score=${score}`)
+    logger.info(`IP=${ip} Address=${signer} Score=${score}`)
 });
 
 export default router;
