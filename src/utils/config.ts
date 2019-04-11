@@ -48,7 +48,12 @@ export default class Config {
         this.certificateExpiration = parseInt(opt.certificateExpiration) * 1000
         this.recapchaMinScore = parseFloat(opt.recapchaMinScore)
         this.timezone = parseFloat(opt.timezone)
-        logger.info("configs:", this)
+        logger.info(`
+chainTag: ${this.chainTag}
+addr: ${this.addr.toString()} 
+networkAPIAddr:${this.networkAPIAddr} 
+recapchaSecretKey: ${this.recapchaSecretKey} 
+timezone: ${this.timezone}`)
     }
 
 }

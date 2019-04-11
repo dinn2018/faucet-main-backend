@@ -1,18 +1,14 @@
-import * as log4js from 'log4js';
+import { configure } from 'log4js';
 
-log4js.configure({
+let log4 = configure({
     appenders: {
-        "out": {type: 'stdout'},
-        "err": { type: 'stderr'},
-        "just-error": { type: 'logLevelFilter', appender: 'err', level: 'error' },
-        "just-info": { type: 'logLevelFilter', appender: 'out', level: 'trace', maxLevel: 'warn' }
+        out: { type: 'stdout' }
     },
-    categories: {
-        "default": { level: "trace", appenders: ["just-info", "just-error"] }
-    }
+    categories: { default: { level: "info", appenders: ['out'] } },
+    pm2: true,
 });
 
-const logger = log4js.getLogger('FAUCET');
+const logger = log4.getLogger()
 
 export {
     logger
