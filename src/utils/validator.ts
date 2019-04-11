@@ -3,6 +3,11 @@ import { Certificate } from 'thor-devkit'
 import { Address } from 'thor-model-kit'
 
 export default class Validator {
+    static validateParameter(param: any, paramName: string) {
+        if (!param) {
+            throw new HttpError("invalid params " + paramName + ": " + param, ErrorCode.Invalid_Parameter, HttpStatusCode.BadRequest)
+        }
+    }
     static validateTimestamp(timestamp: number, expiration: number) {
         if (Date.now() / 1000 - timestamp > expiration) {
             throw new HttpError("certificate expired", ErrorCode.Certificate_Expired, HttpStatusCode.Forbidden)
@@ -22,7 +27,7 @@ export default class Validator {
         try {
             addr = Address.fromHex(a);
         } catch (err) {
-            throw new HttpError("signer: invalid address" + a, ErrorCode.Parameter_Address, HttpStatusCode.BadRequest)
+            throw new HttpError("signer: invalid address" + a, ErrorCode.Invalid_Parameter, HttpStatusCode.BadRequest)
         }
         return addr
     }

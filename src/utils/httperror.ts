@@ -19,7 +19,7 @@ enum HttpStatusCode {
 
 enum ErrorCode {
     Internal_Error = 100,
-    Parameter_Address = 200,
+    Invalid_Parameter = 200,
     Recapcha_Verified_Failed = 300,
     Recapcha_Low_Score = 301,
     Certificate_Expired = 400,

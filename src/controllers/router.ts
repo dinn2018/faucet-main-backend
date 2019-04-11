@@ -10,15 +10,24 @@ import Tool from '../utils/tools'
 
 var router = new Router();
 router.post("/requests", async (ctx) => {
+    let token = ctx.request.body.token
+    Validator.validateParameter(token, 'token')
     let recapchaService = new RecapchaService(ctx.config)
-    let score = await recapchaService.verifyRecapcha(ctx.request.body.token)
+    let score = await recapchaService.verifyRecapcha(token)
     let domain = ctx.request.body.annex.domain
+    Validator.validateParameter(domain, 'domain')
     let signer = ctx.request.body.annex.signer
+    Validator.validateParameter(signer, 'signer')
     let timestamp = parseFloat(ctx.request.body.annex.timestamp)
+    Validator.validateParameter(timestamp, 'timestamp')
     let signature = ctx.request.body.signature
+    Validator.validateParameter(signature, 'signature')
     let purpose = ctx.request.body.purpose
+    Validator.validateParameter(purpose, 'purpose')
     let type = ctx.request.body.payload.type
+    Validator.validateParameter(type, 'type')
     let content = ctx.request.body.payload.content
+    Validator.validateParameter(content, 'content')
     let cert = new Cert(domain, timestamp, signer, signature, purpose, type, content)
     Validator.validateTimestamp(timestamp, ctx.config.certificateExpiration)
     Validator.validateCertificate(cert)
@@ -43,7 +52,7 @@ router.post("/requests", async (ctx) => {
 You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}
         `
     };
-    logger.info(`IP=${ip} Address=${signer} Score=${score}`)
+    // logger.info(`IP=${ip} Address=${signer} Score=${score}`)
 });
 
 export default router;
