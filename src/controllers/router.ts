@@ -26,9 +26,11 @@ router.post("/requests", async (ctx) => {
     Validator.validateParameter(signature, 'signature')
     let purpose = ctx.request.body.purpose
     Validator.validateParameter(purpose, 'purpose')
-    let type = ctx.request.body.payload.type
+    let payload = ctx.request.body.payload
+    Validator.validateParameter(payload, 'payload')
+    let type = payload.type
     Validator.validateParameter(type, 'type')
-    let content = ctx.request.body.payload.content
+    let content = payload.content
     Validator.validateParameter(content, 'content')
     let cert = new Cert(domain, timestamp, signer, signature, purpose, type, content)
     Validator.validateTimestamp(timestamp, ctx.config.certificateExpiration)
