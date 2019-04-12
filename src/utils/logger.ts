@@ -29,7 +29,18 @@ let log4 = configure({
 const log1 = log4.getLogger('info')
 const log2 = log4.getLogger('error')
 
+
+class logger {
+    static info(message: any, ...args: any[]) {
+        log1.info(message, args)
+    }
+
+    static error(message: any, ...args: any[]) {
+        log2.error(message, args)
+    }
+
+}
+
 export {
-    log1,
-    log2
+    logger
 }

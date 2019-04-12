@@ -1,7 +1,7 @@
 import Config from './config';
 import * as Koa from 'koa';
 import { HttpError, HttpStatusCode } from './httperror';
-import { log2 } from './logger'
+import { logger } from './logger'
 
 let config = new Config()
 
@@ -22,7 +22,7 @@ let httpErrorMiddleware = async (ctx: Koa.ParameterizedContext<any, {}>, next: (
             }
         } else {
             ctx.status = HttpStatusCode.InternalError
-            log2.error("unexpected error: ", err)
+            logger.error("unexpected error: ", err)
         }
     }
 }
