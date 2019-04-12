@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { BigNumber } from 'bignumber.js'
 import * as path from 'path';
-import { logger } from '../utils/logger'
+import { log1 } from '../utils/logger'
 import { secp256k1, publicKeyToAddress } from "thor-devkit/dist/cry";
 import { Address } from "thor-model-kit";
 
@@ -48,7 +48,7 @@ export default class Config {
         this.certificateExpiration = parseInt(opt.certificateExpiration) * 1000
         this.recapchaMinScore = parseFloat(opt.recapchaMinScore)
         this.timezone = parseFloat(opt.timezone)
-        logger.info(`
+        log1.info(`
 chainTag: ${this.chainTag}
 addr: ${this.addr.toString()} 
 networkAPIAddr:${this.networkAPIAddr} 

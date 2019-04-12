@@ -4,7 +4,7 @@ import { Address, Transaction, BigInt, Secp256k1, Bytes32 } from 'thor-model-kit
 import { abi } from 'thor-devkit'
 import ThorAPI from '../api/thor-api';
 import Config from '../utils/config';
-import { logger } from '../utils/logger'
+import { log1, log2 } from '../utils/logger'
 import { HttpError, ErrorCode, HttpStatusCode } from '../utils/httperror';
 import { BigNumber } from 'bignumber.js';
 import { randomBytes } from 'crypto'
@@ -44,7 +44,7 @@ export default class TransactionService {
                 }
             }
         })
-        logger.info(`Schedule=${latestSchedule.from} ${latestSchedule.to} Limit=${latestSchedule.limit} count=${count}`)
+        log1.info(`Schedule=${latestSchedule.from} ${latestSchedule.to} Limit=${latestSchedule.limit} count=${count}`)
         if (count >= latestSchedule.limit) {
             throw new HttpError(`Rewards are not available at this time. Please come back later.`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
         }
@@ -58,7 +58,7 @@ export default class TransactionService {
             }
         })
         if (count > 0) {
-            logger.error("this certificate has already been used", "cert hash", certHash)
+            log2.error("this certificate has already been used", "cert hash", certHash)
             throw new HttpError("this certificate has already been used", ErrorCode.Certificate_Expired, HttpStatusCode.Forbidden)
         }
     }
@@ -68,11 +68,11 @@ export default class TransactionService {
         let balance = new BigNumber(acc.balance)
         let eng = new BigNumber(acc.eng)
         if (balance.isLessThan(this.config.vetLimit)) {
-            logger.error(`insufficient vet`, balance, this.config.vetLimit)
+            log2.error(`insufficient vet`, balance, this.config.vetLimit)
             throw new HttpError(`You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Vet, HttpStatusCode.Forbidden)
         }
         if (eng.isLessThan(this.config.thorLimit)) {
-            logger.error(`insufficient energy`, eng, this.config.thorLimit)
+            log2.error(`insufficient energy`, eng, this.config.thorLimit)
             throw new HttpError(`You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Thor, HttpStatusCode.Forbidden)
         }
     }
@@ -91,7 +91,7 @@ export default class TransactionService {
                 }
             })
             if (count > 0) {
-                logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
+                log2.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
                 throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
@@ -113,7 +113,7 @@ export default class TransactionService {
                 }
             })
             if (count > 0) {
-                logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
+                log2.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
                 throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
@@ -129,7 +129,7 @@ export default class TransactionService {
                 }
             })
             if (count > 0) {
-                logger.error("transaction is pending")
+                log2.error("transaction is pending")
                 throw new HttpError("transaction is pending", ErrorCode.Exist_Transaction, HttpStatusCode.Forbidden)
             }
         } catch (err) {
@@ -151,7 +151,6 @@ export default class TransactionService {
                 certhash: certHash
             })
         } catch (err) {
-            logger.error("insertTx", err)
             throw err
         }
     }
@@ -188,7 +187,6 @@ export default class TransactionService {
             tx.signature = Secp256k1.sign(tx.signingHash, Bytes32.fromHex(this.config.privateKey))
             return tx
         } catch (err) {
-            logger.error("buildTx err", err)
             throw err
         }
     }
@@ -197,7 +195,6 @@ export default class TransactionService {
             let raw = tx.encode()
             await this.thorAPI.sendTx(raw)
         } catch (err) {
-            logger.error("sent tx err", err)
             throw err
         }
     }

@@ -5,7 +5,7 @@ import RecapchaService from './recapcha-service'
 import Validator from '../utils/validator'
 import { blake2b256 } from 'thor-devkit/dist/cry';
 import { Certificate } from 'thor-devkit';
-import { logger } from '../utils/logger'
+import { log1, log2 } from '../utils/logger'
 import Tool from '../utils/tools'
 
 var router = new Router();
@@ -51,7 +51,7 @@ router.post("/requests", async (ctx) => {
         id: tx.id.toString(),
         msg: `You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}`
     };
-    logger.info(`IP=${ip} Address=${signer} Score=${score}`)
+    log1.info(`IP=${ip} Address=${signer} Score=${score}`)
 });
 
 export default router;

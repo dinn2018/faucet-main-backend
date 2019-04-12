@@ -1,15 +1,35 @@
 import { configure } from 'log4js';
+import * as path from 'path';
+const basePath = path.resolve(__dirname, "../../logs");
 
 let log4 = configure({
     appenders: {
-        out: { type: 'stdout' }
+        info: {
+            type: "dateFile",
+            filename: basePath + '/faucet-info',
+            alwaysIncludePattern: true,
+            pattern: "-yyyy-MM-dd.log",
+            daysToKeep: 10
+        },
+        error: {
+            type: 'dateFile',
+            filename: basePath + '/faucet-error',
+            alwaysIncludePattern: true,
+            pattern: "-yyyy-MM-dd.log",
+            daysToKeep: 10
+        }
     },
-    categories: { default: { level: "info", appenders: ['out'] } },
+    categories: {
+        error: { appenders: ['error'], level: 'error' },
+        info: { appenders: ["info"], level: "info" },
+        default: { appenders: ['info', 'error',], level: 'trace' }
+    },
     pm2: true,
 });
-
-const logger = log4.getLogger()
+const log1 = log4.getLogger('info')
+const log2 = log4.getLogger('error')
 
 export {
-    logger
+    log1,
+    log2
 }

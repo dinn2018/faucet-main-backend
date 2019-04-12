@@ -2,7 +2,7 @@ import * as Koa from 'koa';
 import * as bodyParser from "koa-bodyparser";
 import * as cors from 'koa-cors'
 import router from './controllers/router';
-import { logger } from './utils/logger'
+import { log1 } from './utils/logger'
 import { configMiddleware, httpErrorMiddleware } from './utils/middleware';
 const convert = require('koa-convert');
 import { sequelize } from './sequelize-models';
@@ -21,4 +21,4 @@ app.use(convert(bodyParser()))
 const port = process.env.FAUCET_PORT || 3000
 app.listen(port);
 
-logger.info("Server running on port " + port)
+log1.info("Server running on port " + port)
