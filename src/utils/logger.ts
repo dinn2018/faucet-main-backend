@@ -8,14 +8,14 @@ let log4 = configure({
             type: "dateFile",
             filename: basePath + '/faucet-info',
             alwaysIncludePattern: true,
-            pattern: "-yyyy-MM-dd.log",
+            pattern: "yyyy-MM-dd.log",
             daysToKeep: 10
         },
         error: {
             type: 'dateFile',
             filename: basePath + '/faucet-error',
             alwaysIncludePattern: true,
-            pattern: "-yyyy-MM-dd.log",
+            pattern: "yyyy-MM-dd.log",
             daysToKeep: 10
         }
     },
