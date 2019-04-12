@@ -1,6 +1,6 @@
 import Record from '../sequelize-models/record.models';
 import Schedule from '../sequelize-models/schedule.model';
-import { Address, Transaction, BigInt, Secp256k1, Bytes32, keccak256 } from 'thor-model-kit';
+import { Address, Transaction, BigInt, Secp256k1, Bytes32 } from 'thor-model-kit';
 import { abi } from 'thor-devkit'
 import ThorAPI from '../api/thor-api';
 import Config from '../utils/config';
