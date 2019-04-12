@@ -28,11 +28,11 @@ export default class TransactionService {
             limit: 1
         })
         if (latestSchedules.length == 0) {
-            throw new HttpError("Oops! You are too late. All of the rewards have now been claimed for this session.", ErrorCode.NO_Schedule, HttpStatusCode.Forbidden)
+            throw new HttpError("Rewards are not available at this time. Please come back later.", ErrorCode.NO_Schedule, HttpStatusCode.Forbidden)
         }
         let latestSchedule = latestSchedules[0]
         if (timestamp < latestSchedule.from) {
-            throw new HttpError(`Oops! Rewards are not available at this time. Please come back later.`, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
+            throw new HttpError(`Rewards are not available at this time. Please come back later.`, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
         }
         let count = await Record.count({
             where: {
@@ -46,7 +46,7 @@ export default class TransactionService {
         })
         logger.info(`Schedule=${latestSchedule.from} ${latestSchedule.to} Limit=${latestSchedule.limit} count=${count}`)
         if (count >= latestSchedule.limit) {
-            throw new HttpError(`Oops! Rewards are not available at this time. Please come back later.`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+            throw new HttpError(`Rewards are not available at this time. Please come back later.`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
         }
         return latestSchedule
     }
@@ -69,11 +69,11 @@ export default class TransactionService {
         let eng = new BigNumber(acc.eng)
         if (balance.isLessThan(this.config.vetLimit)) {
             logger.error(`insufficient vet`, balance, this.config.vetLimit)
-            throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Vet, HttpStatusCode.Forbidden)
+            throw new HttpError(`You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Vet, HttpStatusCode.Forbidden)
         }
         if (eng.isLessThan(this.config.thorLimit)) {
             logger.error(`insufficient energy`, eng, this.config.thorLimit)
-            throw new HttpError(`Oops! You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Thor, HttpStatusCode.Forbidden)
+            throw new HttpError(`You are too late. All of the rewards have now been claimed for this session.`, ErrorCode.Insufficient_Thor, HttpStatusCode.Forbidden)
         }
     }
 
@@ -92,7 +92,7 @@ export default class TransactionService {
             })
             if (count > 0) {
                 logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
-                throw new HttpError(`Oops! You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+                throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
@@ -114,7 +114,7 @@ export default class TransactionService {
             })
             if (count > 0) {
                 logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
-                throw new HttpError(`Oops! You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+                throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
         } catch (err) {
             throw err
