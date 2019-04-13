@@ -90,7 +90,7 @@ export default class TransactionService {
                     address: addr.toString()
                 }
             })
-            if (count > 2) {
+            if (count > 0) {
                 logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
                 throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
@@ -112,7 +112,7 @@ export default class TransactionService {
                     ip: ip
                 }
             })
-            if (count > 4) {
+            if (count > 0) {
                 logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
                 throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
             }
