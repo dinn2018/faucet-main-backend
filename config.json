@@ -4,5 +4,5 @@
     "vetLimit": 0,
     "thorLimit": 500,
     "certificateExpiration": 600,
-    "recapchaMinScore": 0.3
+    "recapchaMinScore": 0.5
 }
