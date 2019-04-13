@@ -19,8 +19,8 @@ export default class RecapchaService {
             throw new HttpError("recapcha verified failed", ErrorCode.Recapcha_Verified_Failed, HttpStatusCode.Forbidden)
         }
         if (result.score < this.config.recapchaMinScore) {
-            logger.error("recapcha score too low", result, "min score", this.config.recapchaMinScore)
-            throw new HttpError("recapcha score too low", ErrorCode.Recapcha_Low_Score, HttpStatusCode.Forbidden)
+            logger.error("System is busy now please try again", result, "min score", this.config.recapchaMinScore)
+            throw new HttpError("The network is busy. Please try again.", ErrorCode.Recapcha_Low_Score, HttpStatusCode.Forbidden)
         }
         return result.score
     }

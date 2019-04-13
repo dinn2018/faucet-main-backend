@@ -9,6 +9,8 @@ import { logger } from '../utils/logger';
 
 var router = new Router();
 router.post("/requests", async (ctx) => {
+    let token = ctx.request.body.token
+    Validator.validateParameter(token, 'token')
     let annex = ctx.request.body.annex;
     Validator.validateParameter(annex, 'annex')
     let domain = annex.domain
@@ -27,14 +29,9 @@ router.post("/requests", async (ctx) => {
     Validator.validateParameter(type, 'type')
     let content = payload.content
     Validator.validateParameter(content, 'content')
-    let cert = new Cert(domain, timestamp, signer, signature, purpose, type, content)
-    Validator.validateTimestamp(timestamp, ctx.config.certificateExpiration)
-    Validator.validateCertificate(cert)
     let addr = Validator.validateAddress(signer)
     let ip = ctx.request.ip;
     let service = new TransactionService(ctx.config)
-    let certHash = blake2b256(Certificate.encode(cert)).toString('hex')
-    await service.certHashApproved(certHash)
     await service.balanceApproved()
     let currentTimestamp = new Date().getTime()
     let latestSchedule = await service.scheduleApproved(currentTimestamp)
@@ -42,8 +39,11 @@ router.post("/requests", async (ctx) => {
     await service.txApproved(tx.id)
     await service.addressApproved(addr, latestSchedule)
     await service.ipApproved(ip, latestSchedule)
-    let token = ctx.request.body.token
-    Validator.validateParameter(token, 'token')
+    let cert = new Cert(domain, timestamp, signer, signature, purpose, type, content)
+    Validator.validateTimestamp(timestamp, ctx.config.certificateExpiration)
+    Validator.validateCertificate(cert)
+    let certHash = blake2b256(Certificate.encode(cert)).toString('hex')
+    await service.certHashApproved(certHash)
     let recapchaService = new RecapchaService(ctx.config)
     let score = await recapchaService.verifyRecapcha(token)
     await service.insertTx(tx.id, addr, ip, currentTimestamp, certHash, latestSchedule)
