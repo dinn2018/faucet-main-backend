@@ -5,8 +5,7 @@ import RecapchaService from './recapcha-service'
 import Validator from '../utils/validator'
 import { blake2b256 } from 'thor-devkit/dist/cry';
 import { Certificate } from 'thor-devkit';
-import { logger } from '../utils/logger'
-import Tool from '../utils/tools'
+import { logger } from '../utils/logger';
 
 var router = new Router();
 router.post("/requests", async (ctx) => {
