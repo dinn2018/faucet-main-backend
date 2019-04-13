@@ -10,10 +10,6 @@ import Tool from '../utils/tools'
 
 var router = new Router();
 router.post("/requests", async (ctx) => {
-    let token = ctx.request.body.token
-    Validator.validateParameter(token, 'token')
-    let recapchaService = new RecapchaService(ctx.config)
-    let score = await recapchaService.verifyRecapcha(token)
     let annex = ctx.request.body.annex;
     Validator.validateParameter(annex, 'annex')
     let domain = annex.domain
@@ -41,12 +37,16 @@ router.post("/requests", async (ctx) => {
     let certHash = blake2b256(Certificate.encode(cert)).toString('hex')
     await service.certHashApproved(certHash)
     await service.balanceApproved()
-    let currentTimestamp = Tool.getLocalTime(new Date(), ctx.config.timezone)
+    let currentTimestamp = new Date().getTime()
     let latestSchedule = await service.scheduleApproved(currentTimestamp)
     let tx = await service.buildTx(addr, latestSchedule)
     await service.txApproved(tx.id)
     await service.addressApproved(addr, latestSchedule)
     await service.ipApproved(ip, latestSchedule)
+    let token = ctx.request.body.token
+    Validator.validateParameter(token, 'token')
+    let recapchaService = new RecapchaService(ctx.config)
+    let score = await recapchaService.verifyRecapcha(token)
     await service.insertTx(tx.id, addr, ip, currentTimestamp, certHash, latestSchedule)
     await service.send(tx)
     ctx.body = {
