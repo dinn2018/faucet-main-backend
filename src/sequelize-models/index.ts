@@ -16,7 +16,7 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV == "dev") {
     sequelize = new Sequelize({
         database: 'Faucet',
         dialect: 'mysql',
-        host: 'localhost',
+        host: '127.0.0.1',
         username: 'root',
         password: 'vechain@faucet!',
         models: [Record, App]

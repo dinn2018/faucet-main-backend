@@ -3,7 +3,6 @@ import { redisClient } from '../utils/redis'
 import * as crypto from 'crypto'
 import Config from '../utils/config';
 import App from '../sequelize-models/app.model'
-import { Json } from 'sequelize/types/lib/utils';
 
 export default class AppService {
     private config: Config
