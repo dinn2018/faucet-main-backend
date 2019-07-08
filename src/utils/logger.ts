@@ -32,11 +32,19 @@ const log2 = log4.getLogger('error')
 
 class logger {
     static info(message: any, ...args: any[]) {
-        log1.info(message, args)
+        if (args.length > 0) {
+            log1.info(message, args)
+        } else {
+            log1.info(message)
+        }
     }
 
     static error(message: any, ...args: any[]) {
-        log2.error(message, args)
+        if (args.length > 0) {
+            log1.error(message, args)
+        } else {
+            log1.error(message)
+        }
     }
 
 }
