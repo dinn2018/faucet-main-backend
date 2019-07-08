@@ -1,6 +1,7 @@
 import * as Router from 'koa-router';
 import Cert from '../utils/cert'
 import TransactionService from './transaction-service'
+import AppService from './app-service'
 import RecapchaService from './recapcha-service'
 import Validator from '../utils/validator'
 import { blake2b256 } from 'thor-devkit/dist/cry';
@@ -11,7 +12,7 @@ var router = new Router();
 router.post("/requests", async (ctx) => {
     let token = ctx.request.body.token
     Validator.validateParameter(token, 'token')
-    let annex = ctx.request.body.annex;
+    let annex = ctx.request.body.annex
     Validator.validateParameter(annex, 'annex')
     let domain = annex.domain
     Validator.validateParameter(domain, 'domain')
@@ -31,14 +32,21 @@ router.post("/requests", async (ctx) => {
     Validator.validateParameter(content, 'content')
     let addr = Validator.validateAddress(signer)
     let ip = ctx.request.ip;
+    let key = ctx.request.body.key
+    let codes = ctx.request.body.codes
+    let vet = ctx.config.claimVet
+    let thor = ctx.config.claimThor
+    if (typeof codes == 'object' && codes != null) {
+        await new AppService(ctx.config).verify(key, codes)
+        vet = ctx.config.exploreVet
+        thor = ctx.config.exploreThor
+    }
     let service = new TransactionService(ctx.config)
     await service.balanceApproved()
-    let currentTimestamp = new Date().getTime()
-    let latestSchedule = await service.scheduleApproved(currentTimestamp)
-    let tx = await service.buildTx(addr, latestSchedule)
+    let tx = await service.buildTx(addr, vet, thor)
     await service.txApproved(tx.id)
-    await service.addressApproved(addr, latestSchedule)
-    await service.ipApproved(ip, latestSchedule)
+    await service.addressApproved(addr)
+    await service.ipApproved(ip)
     let cert = new Cert(domain, timestamp, signer, signature, purpose, type, content)
     Validator.validateTimestamp(timestamp, ctx.config.certificateExpiration)
     Validator.validateCertificate(cert)
@@ -46,13 +54,22 @@ router.post("/requests", async (ctx) => {
     await service.certHashApproved(certHash)
     let recapchaService = new RecapchaService(ctx.config)
     let score = await recapchaService.verifyRecapcha(token)
-    await service.insertTx(tx.id, addr, ip, currentTimestamp, certHash, latestSchedule)
+    await service.insertTx(tx.id, addr, ip, certHash, vet, thor)
     await service.send(tx)
     ctx.body = {
         id: tx.id.toString(),
-        message: `You have now successfully claimed ${latestSchedule.vet} VET and ${latestSchedule.thor} VTHO to ${signer}`
+        message: `You have now successfully claimed ${vet} VET and ${thor} VTHO to ${signer}`
     };
     logger.info(`IP=${ip} Address=${signer} Score=${score}`)
 });
+
+router.get("/apps", async (ctx) => {
+    let service = new AppService(ctx.config)
+    let result = await service.randoms()
+    ctx.body = {
+        result,
+        message: `get apps successfully`
+    };
+})
 
 export default router;

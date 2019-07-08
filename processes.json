@@ -1,7 +1,13 @@
 {
     "apps": [{
-        "script": "dist/server.js",
-        "instances": "4",
-        "exec_mode": "cluster"
-    }]
+            "script": "dist/server.js",
+            "instances": "4",
+            "exec_mode": "cluster"
+        },
+        {
+            "script": "dist/apps-cron.js",
+            "instances": "1",
+            "exec_mode": "fork"
+        }
+    ]
 }

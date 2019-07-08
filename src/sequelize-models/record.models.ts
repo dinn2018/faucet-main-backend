@@ -34,7 +34,7 @@ export default class Record extends Model<Record> {
     }) thor: string
 
     @Column({
-        type: DataType.CHAR(66),
+        type: DataType.CHAR(64),
         unique: { name: 'certhash', msg: 'certhash' }
     }) certhash: string
 

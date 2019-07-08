@@ -19,7 +19,7 @@ enum HttpStatusCode {
 
 enum ErrorCode {
     Internal_Error = 100,
-    Invalid_Parameter = 200,
+    Bad_Parameter = 200,
     Recapcha_Verified_Failed = 300,
     Recapcha_Low_Score = 301,
     Certificate_Expired = 400,
@@ -29,9 +29,9 @@ enum ErrorCode {
     Address_RateLimit_Exceeded = 404,
     IP_RateLimit_Exceeded = 405,
     Exist_Transaction = 406,
-    NO_Schedule = 407,
-    NOT_IN_Schedule = 408,
-    Schedule_RateLimit_Exceeded = 409,
+    Key_Expired = 407,
+    Key_Invalid = 408,
+    Key_Verified_Failed = 409,
 
 }
 

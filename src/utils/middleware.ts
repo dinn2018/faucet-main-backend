@@ -22,6 +22,7 @@ let httpErrorMiddleware = async (ctx: Koa.ParameterizedContext<any, {}>, next: (
             }
         } else {
             ctx.status = HttpStatusCode.InternalError
+            console.log("unexpected error: ", err)
             logger.error("unexpected error: ", err)
         }
     }

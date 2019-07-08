@@ -1,15 +1,16 @@
 import { Sequelize } from 'sequelize-typescript';
 import Record from './record.models';
-import Schedule from './schedule.model';
+import App from './app.model';
+
 let sequelize: Sequelize;
 if (!process.env.NODE_ENV || process.env.NODE_ENV == "dev") {
     sequelize = new Sequelize({
-        database: 'Faucet',
+        database: 'faucet-main-backend',
         dialect: 'mysql',
         host: 'localhost',
         username: 'root',
         password: '123456qwe',
-        models: [Record, Schedule]
+        models: [Record, App]
     });
 } else {
     sequelize = new Sequelize({
@@ -18,7 +19,7 @@ if (!process.env.NODE_ENV || process.env.NODE_ENV == "dev") {
         host: 'localhost',
         username: 'root',
         password: 'vechain@faucet!',
-        models: [Record, Schedule]
+        models: [Record, App]
     });
 }
 

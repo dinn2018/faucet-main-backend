@@ -5,7 +5,7 @@ import { Address } from 'thor-model-kit'
 export default class Validator {
     static validateParameter(param: any, paramName: string) {
         if (!param) {
-            throw new HttpError("invalid params " + paramName + ": " + param, ErrorCode.Invalid_Parameter, HttpStatusCode.BadRequest)
+            throw new HttpError("invalid params " + paramName + ": " + param, ErrorCode.Bad_Parameter, HttpStatusCode.BadRequest)
         }
     }
     static validateTimestamp(timestamp: number, expiration: number) {
@@ -27,7 +27,7 @@ export default class Validator {
         try {
             addr = Address.fromHex(a);
         } catch (err) {
-            throw new HttpError("signer: invalid address" + a, ErrorCode.Invalid_Parameter, HttpStatusCode.BadRequest)
+            throw new HttpError("signer: invalid address" + a, ErrorCode.Bad_Parameter, HttpStatusCode.BadRequest)
         }
         return addr
     }

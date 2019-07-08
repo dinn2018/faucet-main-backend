@@ -15,13 +15,19 @@ export default class Config {
     privateKey: string
     addr: Address
     chainTag: CHAIN_TAG
+    claimVet: BigNumber
+    claimThor: BigNumber
+    exploreVet: BigNumber
+    exploreThor: BigNumber
     vetLimit: BigNumber
     thorLimit: BigNumber
+    addrTimes: number
+    ipTimes: number
     networkAPIAddr: string
     recapchaSecretKey: string
     recapchaMinScore: number
     certificateExpiration: number
-    timezone: number
+    codeLen: number
 
     constructor() {
         let data = fs.readFileSync(path.join(__dirname, "../../config.json"), "utf-8")
@@ -29,7 +35,7 @@ export default class Config {
         if (!process.env.NODE_ENV || process.env.NODE_ENV == "dev") {
             this.privateKey = opt.privateKey
             this.chainTag = parseInt(opt.chainTag)
-            this.recapchaSecretKey = opt.recapchaSecretKey
+            this.recapchaSecretKey = '6LfUrJEUAAAAAGKo2R5juHEoHE0T27HM66At5KhU'
             this.networkAPIAddr = "https://sync-testnet.vechain.org"
         } else {
             this.privateKey = process.env.PRIV_KEY
@@ -42,18 +48,24 @@ export default class Config {
         }
         let pubKey = secp256k1.derivePublicKey(Buffer.from(this.privateKey.slice(2), "hex"))
         this.addr = Address.fromHex('0x' + publicKeyToAddress(pubKey).toString("hex"))
-        let big18 = new BigNumber(1e18)
-        this.vetLimit = new BigNumber(opt.vetLimit).multipliedBy(big18)
-        this.thorLimit = new BigNumber(opt.thorLimit).multipliedBy(big18)
+        this.claimVet = new BigNumber(opt.claimVet).multipliedBy(1e18)
+        this.claimThor = new BigNumber(opt.claimThor).multipliedBy(1e18)
+        this.exploreVet = new BigNumber(opt.exploreVet).multipliedBy(1e18)
+        this.exploreThor = new BigNumber(opt.exploreThor).multipliedBy(1e18)
+        this.vetLimit = new BigNumber(opt.vetLimit).multipliedBy(1e18)
+        this.thorLimit = new BigNumber(opt.thorLimit).multipliedBy(1e18)
+        this.addrTimes = parseInt(opt.addrTimes)
+        this.ipTimes = parseInt(opt.ipTimes)
         this.certificateExpiration = parseInt(opt.certificateExpiration) * 1000
         this.recapchaMinScore = parseFloat(opt.recapchaMinScore)
-        this.timezone = parseFloat(opt.timezone)
         logger.info(`
 chainTag: ${this.chainTag}
 addr: ${this.addr.toString()} 
 networkAPIAddr:${this.networkAPIAddr} 
 recapchaSecretKey: ${this.recapchaSecretKey} 
-timezone: ${this.timezone}`)
+`)
+        this.codeLen = parseInt(opt.codeLen)
+
     }
 
 }

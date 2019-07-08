@@ -1,5 +1,5 @@
+import { Sequelize } from 'sequelize-typescript';
 import Record from '../sequelize-models/record.models';
-import Schedule from '../sequelize-models/schedule.model';
 import { Address, Transaction, BigInt, Secp256k1, Bytes32 } from 'thor-model-kit';
 import { abi } from 'thor-devkit'
 import ThorAPI from '../api/thor-api';
@@ -8,7 +8,8 @@ import { logger } from '../utils/logger'
 import { HttpError, ErrorCode, HttpStatusCode } from '../utils/httperror';
 import { BigNumber } from 'bignumber.js';
 import { randomBytes } from 'crypto'
-import { Op } from 'sequelize';
+import { Op, fn, where } from 'sequelize';
+
 
 export default class TransactionService {
     private thorAPI: ThorAPI
@@ -16,39 +17,6 @@ export default class TransactionService {
     constructor(config: Config) {
         this.thorAPI = new ThorAPI(config.networkAPIAddr)
         this.config = config
-    }
-    async scheduleApproved(timestamp: number) {
-        let latestSchedules = await Schedule.findAll({
-            order: [['to', 'ASC']],
-            where: {
-                to: {
-                    [Op.gt]: [timestamp]
-                }
-            },
-            limit: 1
-        })
-        if (latestSchedules.length == 0) {
-            throw new HttpError("Rewards are not available at this time. Please come back later.", ErrorCode.NO_Schedule, HttpStatusCode.Forbidden)
-        }
-        let latestSchedule = latestSchedules[0]
-        if (timestamp < latestSchedule.from) {
-            throw new HttpError(`Rewards are not available at this time. Please come back later.`, ErrorCode.NOT_IN_Schedule, HttpStatusCode.Forbidden)
-        }
-        let count = await Record.count({
-            where: {
-                timestamp: {
-                    [Op.and]: {
-                        [Op.gte]: latestSchedule.from,
-                        [Op.lte]: latestSchedule.to
-                    }
-                }
-            }
-        })
-        logger.info(`Schedule=${latestSchedule.from} ${latestSchedule.to} Limit=${latestSchedule.limit} count=${count}`)
-        if (count >= latestSchedule.limit) {
-            throw new HttpError(`Rewards are not available at this time. Please come back later.`, ErrorCode.Schedule_RateLimit_Exceeded, HttpStatusCode.Forbidden)
-        }
-        return latestSchedule
     }
 
     async certHashApproved(certHash: string) {
@@ -77,125 +45,95 @@ export default class TransactionService {
         }
     }
 
-    async addressApproved(addr: Address, latestSchedule: Schedule) {
-        try {
-            let count = await Record.count({
-                where: {
-                    timestamp: {
-                        [Op.and]: {
-                            [Op.gte]: latestSchedule.from,
-                            [Op.lte]: latestSchedule.to
-                        }
-                    },
-                    address: addr.toString()
-                }
-            })
-            if (count > 0) {
-                logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
-                throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+    async addressApproved(addr: Address) {
+        let count = await Record.count({
+            where: {
+                [Op.and]: [
+                    where(fn('FROM_UNIXTIME', Sequelize.col('timestamp'), '%Y-%m-%d'), '=', fn('FROM_UNIXTIME', Date.now() / 1000, '%Y-%m-%d')),
+                    {
+                        address: addr.toString()
+                    }
+                ]
             }
-        } catch (err) {
-            throw err
+        })
+        if (count >= this.config.addrTimes) {
+            logger.error(`rateLimit Exceed, one address can only send one requests in current schedule`, "count:" + count)
+            throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.Address_RateLimit_Exceeded, HttpStatusCode.Forbidden)
         }
+
     }
 
-    async ipApproved(ip: string, latestSchedule: Schedule) {
-        try {
-            let count = await Record.count({
-                where: {
-                    timestamp: {
-                        [Op.and]: {
-                            [Op.gte]: latestSchedule.from,
-                            [Op.lte]: latestSchedule.to
-                        }
-                    },
-                    ip: ip
-                }
-            })
-            if (count > 0) {
-                logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
-                throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
+    async ipApproved(ip: string) {
+        let count = await Record.count({
+            where: {
+                [Op.and]: [
+                    where(fn('FROM_UNIXTIME', Sequelize.col('timestamp'), '%Y-%m-%d'), '=', fn('FROM_UNIXTIME', Date.now() / 1000, '%Y-%m-%d')), {
+                        ip: ip
+                    }
+                ]
             }
-        } catch (err) {
-            throw err
+        })
+        if (count >= this.config.ipTimes) {
+            logger.error(`rateLimit Exceed, one ip address can only send one requests in current schedule`, "count:" + count)
+            throw new HttpError(`You have already claimed rewards for this session. Please try again at next session.`, ErrorCode.IP_RateLimit_Exceeded, HttpStatusCode.Forbidden)
         }
     }
 
     async txApproved(txid: Bytes32) {
-        try {
-            let count = await Record.count({
-                where: {
-                    txid: txid.toString()
-                }
-            })
-            if (count > 0) {
-                logger.error("transaction is pending")
-                throw new HttpError("transaction is pending", ErrorCode.Exist_Transaction, HttpStatusCode.Forbidden)
+        let count = await Record.count({
+            where: {
+                txid: txid.toString()
             }
-        } catch (err) {
-            throw err
+        })
+        if (count > 0) {
+            logger.error("transaction is pending")
+            throw new HttpError("transaction is pending", ErrorCode.Exist_Transaction, HttpStatusCode.Forbidden)
         }
     }
 
-    async insertTx(txid: Bytes32, addr: Address, ip: string, timestamp: number, certHash: string, latestSchedule: Schedule) {
-        try {
-            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
-            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
-            await Record.create({
-                txid: txid.toString(),
-                address: addr.toString(),
-                ip: ip,
-                vet: vet.toString(10),
-                thor: thor.toString(10),
-                timestamp: timestamp,
-                certhash: certHash
-            })
-        } catch (err) {
-            throw err
-        }
+    async insertTx(txid: Bytes32, addr: Address, ip: string, certHash: string, vet: BigNumber, thor: BigNumber) {
+        await Record.create({
+            txid: txid.toString(),
+            address: addr.toString(),
+            ip: ip,
+            vet: vet.toString(10),
+            thor: thor.toString(10),
+            timestamp: new Date().getTime() / 1000,
+            certhash: certHash
+        })
     }
 
-    async buildTx(addr: Address, latestSchedule: any) {
-        try {
-            let vet = new BigNumber(latestSchedule.vet).multipliedBy(1e18)
-            let thor = new BigNumber(latestSchedule.thor).multipliedBy(1e18)
-            let coder = new abi.Function({ "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" })
-            let data = coder.encode(addr.toString(), thor)
-            let clauses = [{
-                to: addr,
-                value: BigInt.from(vet),
-                data: Buffer.alloc(0)
-            }, {
-                to: Address.fromHex('0x0000000000000000000000000000456e65726779'),
-                value: BigInt.from(0),
-                data: Buffer.from(data.slice(2), "hex")
-            }]
-            let bestBlock = await this.thorAPI.bestBlock()
-            let nonce = '0x' + randomBytes(8).toString('hex')
-            let body: Transaction.Body = {
-                chainTag: this.config.chainTag,
-                blockRef: Buffer.from(bestBlock.id.slice(2, 18), "hex"),
-                expiration: 32,
-                clauses: clauses,
-                gasPriceCoef: 255,
-                gas: BigInt.from(100000),
-                dependsOn: null,
-                nonce: BigInt.from(nonce),
-                reserved: []
-            }
-            let tx = new Transaction(body)
-            tx.signature = Secp256k1.sign(tx.signingHash, Bytes32.fromHex(this.config.privateKey))
-            return tx
-        } catch (err) {
-            throw err
+    async buildTx(addr: Address, vet: BigNumber, thor: BigNumber) {
+        let coder = new abi.Function({ "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" })
+        let data = coder.encode(addr.toString(), thor)
+        let clauses = [{
+            to: addr,
+            value: BigInt.from(vet),
+            data: Buffer.alloc(0)
+        }, {
+            to: Address.fromHex('0x0000000000000000000000000000456e65726779'),
+            value: BigInt.from(0),
+            data: Buffer.from(data.slice(2), "hex")
+        }]
+        let bestBlock = await this.thorAPI.bestBlock()
+        let nonce = '0x' + randomBytes(8).toString('hex')
+        let body: Transaction.Body = {
+            chainTag: this.config.chainTag,
+            blockRef: Buffer.from(bestBlock.id.slice(2, 18), "hex"),
+            expiration: 32,
+            clauses: clauses,
+            gasPriceCoef: 255,
+            gas: BigInt.from(100000),
+            dependsOn: null,
+            nonce: BigInt.from(nonce),
+            reserved: []
         }
+        let tx = new Transaction(body)
+        tx.signature = Secp256k1.sign(tx.signingHash, Bytes32.fromHex(this.config.privateKey))
+        return tx
     }
     async send(tx: Transaction) {
-        try {
-            let raw = tx.encode()
-            await this.thorAPI.sendTx(raw)
-        } catch (err) {
-            throw err
-        }
+        let raw = tx.encode()
+        await this.thorAPI.sendTx(raw)
     }
 }

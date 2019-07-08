@@ -1,8 +1,15 @@
 {
-    "privateKey": "0x939195706df73c3f8ad39d44608e2aef3830773b1735b65ed78e3fe29696b423",
+    "privateKey": "0xdce1443bd2ef0c2631adc1c67e5c93f13dc23a41c18b536effbbdcbcdb96fb65",
     "chainTag": 39,
+    "claimVet": 100,
+    "claimThor": 100,
+    "exploreVet": 500,
+    "exploreThor": 500,
     "vetLimit": 0,
     "thorLimit": 500,
+    "addrTimes": 1,
+    "ipTimes": 5,
     "certificateExpiration": 600,
-    "recapchaMinScore": 0.5
+    "recapchaMinScore": 0.5,
+    "codeLen": 4
 }

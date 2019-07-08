@@ -24,12 +24,17 @@
     "typescript": "^3.2.4"
   },
   "dependencies": {
+    "@types/later": "^1.2.5",
+    "@types/redis": "^2.8.13",
     "bignumber.js": "^8.1.1",
+    "bluebird": "^3.5.4",
     "koa": "^2.6.2",
     "koa-bodyparser": "^2.5.0",
     "koa-cors": "0.0.16",
     "koa-router": "^7.4.0",
+    "later": "^1.2.0",
     "mysql2": "^1.6.5",
+    "redis": "^2.8.0",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
