@@ -47,9 +47,15 @@ export default class AppService {
         }
         let c: number[] = Array.from(JSON.parse(localCodes));
         for (let code of codes) {
-            if (!c.includes(parseInt(code))) {
+            let index = c.indexOf(parseInt(code));
+            if (index == -1) {
                 throw new HttpError("codes verified failed", ErrorCode.Key_Verified_Failed, HttpStatusCode.Forbidden);
+            } else {
+                c[index] = -1;
             }
+            // if (!c.includes(parseInt(code))) {
+            //     throw new HttpError("codes verified failed", ErrorCode.Key_Verified_Failed, HttpStatusCode.Forbidden);
+            // }
         }
         await redisClient.delAsync(key)
     }
